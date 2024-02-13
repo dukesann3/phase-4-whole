@@ -5,8 +5,10 @@ from faker import Faker
 fake = Faker()
 
 class TestApp:
+    '''Flask application in app.py'''
 
     def test_gets_employees(self):
+        '''retrieves campers with GET requests to /campers.'''
         with app.app_context():
     
             employee1 = Employee(first_name="Travis", last_name="Browne", department="Engineering", role="Project Engineer")
@@ -37,6 +39,7 @@ class TestApp:
             assert [emp["role"] for emp in response] == [
                 employee.role for employee in employees
             ]
+
 
 
 

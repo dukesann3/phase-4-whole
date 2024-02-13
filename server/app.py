@@ -21,9 +21,15 @@ class Employees(Resource):
         all_employees = [employee.to_dict() for employee in Employee.query.all()]
         return make_response(all_employees, 200)
     
+# class EmployeeBosses(Resource):
+
+#     def get(self):
+#         all_relationships = [relationship.to_dict() for relationship in EmployeeBoss.query.all()]
+#         return make_response(all_relationships, 200)
 
 
 api.add_resource(Employees, '/employees')
+#api.add_resource(EmployeeBosses, '/employee_relationships')
 
 if __name__ == "__main__":
     app.run(port=5555, debug=True)
