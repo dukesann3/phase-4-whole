@@ -17,6 +17,8 @@ class Employee(db.Model, SerializerMixin):
     assignments = db.relationship("Assignment", back_populates="employee", cascade='all, delete-orphan')
     projects = association_proxy("assignments", "project", 
                                  creator=lambda project_obj: Assignment(project=project_obj))
+    
+    serialize_rules = ("-assignments.employee","-assignments.project")
 
     #!!!!!! EMAIL AND PASSWORD FOR LOGIN FOR FUTURE !!!!!
 
@@ -42,6 +44,8 @@ class Project(db.Model, SerializerMixin):
     assignments = db.relationship("Assignment", back_populates="project", cascade="all, delete-orphan")
     employees = association_proxy("assignments", "employee", 
                                   creator=lambda employee_obj: Assignment(employee=employee_obj))
+    
+    serialize_rules = ("-assignments.project", "-assignments.employee")
 
     def __repr__(self):
         return f'<Project {self.name} | SO: {self.sales_order}>'
@@ -61,8 +65,28 @@ class Assignment(db.Model, SerializerMixin):
     employee = db.relationship("Employee", back_populates="assignments")
     project = db.relationship("Project", back_populates="assignments")
 
+    serialize_rules = ("-employee.assignments", "-project.assignments")
+
+    @validates("start_date")
+    def validate_start_date(self, key, value):
+        project_start_date = Project.query.filter(Project.id==self.project_id).first().start_date
+
+        if value < project_start_date:
+            raise ValueError("Start date for assignment must be after project start date")
+        return value
+        
+    @validates("expected_end_date")
+    def validates_expected_end_date(self, key, value):
+        project_end_date = Project.query.filter(Project.id==self.project_id).first().expected_end_date
+
+        if value > project_end_date:
+            raise ValueError("Assignment's expected end date must be less than the project's expected end date")
+        return value
+        
+
+
     def __repr__(self):
-        return f'<Assignment {self.name}>'
+        return f'<Assignment {self.name} | Start Date: {self.start_date} | Expected End Date: {self.expected_end_date}>'
     
 
 

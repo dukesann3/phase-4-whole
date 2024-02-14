@@ -62,20 +62,25 @@ def create_assignments():
 
     for _ in range(40):
         project_id = random.randint(project_id_first, project_id_last)
+        employee_id = random.randint(employee_id_first, employee_id_last)
+
         project = Project.query.filter(Project.id==project_id).first()
+
         assignment_start_date = project.start_date + timedelta(days=random.randint(1,300))
         assignment_end_date = project.expected_end_date - timedelta(days=random.randint(1,300))
 
         assignment = Assignment(
-            employee_id=random.randint(employee_id_first, employee_id_last),
-            project_id=random.randint(project_id_first, project_id_last),
-            name=fake.name(),
+            employee_id=employee_id,
+            project_id=project_id,
+            name=fake.text(max_nb_chars=20),
             comments=fake.paragraph(nb_sentences=1),
             start_date=assignment_start_date,
             expected_end_date=assignment_end_date
         )
 
         all_assignments.append(assignment)
+        print(assignment)
+
 
     return all_assignments
     
