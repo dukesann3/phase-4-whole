@@ -47,7 +47,7 @@ class EmployeeID(Resource):
             return make_response(employee, 200)
         else:
             return make_response({"message": f"Error, could not find employee with ID: {id}"})
-
+        
 
 class Projects(Resource):
 
@@ -100,6 +100,27 @@ class Assignments(Resource):
     def get(self):
         all_assignments = [assignment.to_dict(rules=('-employee','-project')) for assignment in Assignment.query.all()]
         return make_response(all_assignments, 200)
+    
+    def post(self):
+        try: 
+            response = request.get_json()
+            date_format = "%Y-%m-%d"
+
+            new_assignment = Assignment(
+                employee_id=response["employee_id"],
+                project_id=response["project_id"],
+                name=response["name"],
+                comments=response["comments"],
+                start_date=datetime.strptime(response["start_date"], date_format),
+                expected_end_date=datetime.strptime(response["expected_end_date"], date_format)
+            )
+
+            db.session.add(new_assignment)
+            db.session.commit()
+
+            return make_response(new_assignment.to_dict(), 200)
+        except:
+            return make_response({"message": "Error, could not create assignment"}, 400)
     
 
 class AssignmentID(Resource):
