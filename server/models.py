@@ -72,6 +72,7 @@ class Assignment(db.Model, SerializerMixin):
         project_start_date = Project.query.filter(Project.id==self.project_id).first().start_date
 
         if value < project_start_date:
+            print("ERRORS?")
             raise ValueError("Start date for assignment must be after project start date")
         return value
         

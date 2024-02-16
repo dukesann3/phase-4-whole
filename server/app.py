@@ -4,7 +4,7 @@ from flask import Flask, jsonify, request, make_response
 from flask_migrate import Migrate
 from flask_restful import Api, Resource
 from models import db, Employee, Project, Assignment
-from datetime import datetime
+from datetime import datetime, date
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///plants.db'
@@ -102,24 +102,25 @@ class Assignments(Resource):
         return make_response(all_assignments, 200)
     
     def post(self):
-        try: 
-            response = request.get_json()
-            date_format = "%Y-%m-%d"
+        response = request.get_json()
+        date_format = "%Y-%m-%d"
 
+        try: 
             new_assignment = Assignment(
                 employee_id=response["employee_id"],
                 project_id=response["project_id"],
                 name=response["name"],
                 comments=response["comments"],
-                start_date=datetime.strptime(response["start_date"], date_format),
-                expected_end_date=datetime.strptime(response["expected_end_date"], date_format)
+                start_date=datetime.strptime(response["start_date"], date_format).date(),
+                expected_end_date=datetime.strptime(response["expected_end_date"], date_format).date()
             )
 
             db.session.add(new_assignment)
             db.session.commit()
 
             return make_response(new_assignment.to_dict(), 200)
-        except:
+        except Exception as error:
+            print(error)
             return make_response({"message": "Error, could not create assignment"}, 400)
     
 
