@@ -63,8 +63,8 @@ class Projects(Resource):
             new_project = Project(
                 sales_order=response["sales_order"],
                 name=response["name"],
-                start_date=datetime.strptime(response["start_date"], date_format),
-                expected_end_date=datetime.strptime(response["expected_end_date"], date_format),
+                start_date=datetime.strptime(response["start_date"], date_format).date(),
+                expected_end_date=datetime.strptime(response["expected_end_date"], date_format).date(),
                 customer_name=response["customer_name"],
                 sale_price=response["sale_price"],
                 comment=response["comment"]
@@ -86,6 +86,34 @@ class ProjectID(Resource):
             return make_response(project, 200)
         else:
             return make_response({"message": f"Error, could not find project with ID: {id}"})
+        
+    def patch(self, id):
+        response = request.get_json()
+
+        try:
+            project = Project.query.filter_by(id=id).first()
+            for attr in response:
+                value = response[attr]
+                if attr == "start_date" or attr == "expected_end_date":
+                    date_format = "%Y-%m-%d"
+                    value = datetime.strptime(value, date_format).date()
+                elif attr == "assignments":
+                    continue
+                
+                print(attr)
+                setattr(project, attr, value)
+
+            db.session.add(project)
+            db.session.commit()
+
+            return make_response(project.to_dict(), 200)
+        except Exception as error:
+            print(error)
+            return make_response({"message": "Error, could not update project"}, 400)
+
+
+    def delete(self, id):
+        pass
         
 
 class AssignmentInProject(Resource):
@@ -132,6 +160,12 @@ class AssignmentID(Resource):
             return make_response(assignment, 200)
         else:
             return make_response({"message": f"Error. Could not find assignment with ID: {id}"})
+        
+    def patch(self, id):
+        pass
+
+    def delete(self, id):
+        pass
 
 
 api.add_resource(Employees, '/employees')
