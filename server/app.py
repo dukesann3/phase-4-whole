@@ -162,7 +162,29 @@ class AssignmentID(Resource):
             return make_response({"message": f"Error. Could not find assignment with ID: {id}"})
         
     def patch(self, id):
-        pass
+        response = request.get_json()
+        date_format = "%Y-%m-%d"
+
+        try:
+            assignment = Assignment.query.filter_by(id=id).first()
+
+            for attr in response:
+                value = response[attr]
+                if attr == "start_date" or attr == "expected_end_date":
+                    value = datetime.strptime(response[attr], date_format).date()
+
+                setattr(assignment, attr, value)
+            
+            db.session.add(assignment)
+            db.session.commit()
+
+            return make_response(assignment.to_dict(), 200)
+        except Exception as error:
+            print(error)
+            return make_response({"message": "Error, could not patch assignment"}, 400)
+
+
+
 
     def delete(self, id):
         pass
