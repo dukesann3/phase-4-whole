@@ -183,11 +183,18 @@ class AssignmentID(Resource):
             print(error)
             return make_response({"message": "Error, could not patch assignment"}, 400)
 
-
-
-
     def delete(self, id):
-        pass
+        try:
+            assignment_to_delete = Assignment.query.filter_by(id=id).first()
+
+            db.session.delete(assignment_to_delete)
+            db.session.commit()
+
+            return make_response({}, 200)
+        except:
+            return make_response({"message": "Error, could not delete assignment"})
+
+
 
 
 api.add_resource(Employees, '/employees')
