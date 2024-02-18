@@ -1,5 +1,5 @@
 from app import app
-from models import Employee, db, Project, Assignment
+from models import Employee, db, Project, Assignment, AssignmentChangeLog, ProjectChangeLog
 from faker import Faker
 from datetime import date, timedelta
 import random
@@ -83,8 +83,33 @@ def create_assignments():
 
 
     return all_assignments
-    
 
+def create_project_change_log(projects):
+
+    all_project_change_logs = []
+
+    for project in projects:
+        change_log = ProjectChangeLog(
+            project_id = project.id,
+            detail="Initial Project Creation"
+        )
+        all_project_change_logs.append(change_log)
+
+    return all_project_change_logs
+
+def create_assignment_change_log(assignments):
+
+    all_assignment_change_logs = []
+
+    for assignment in assignments:
+        change_log = AssignmentChangeLog(
+            assignment_id=assignment.id,
+            detail="Initial Assignment Creation"
+        )
+        all_assignment_change_logs.append(change_log)
+
+    return all_assignment_change_logs
+    
 
 if __name__ == "__main__":
 
@@ -104,9 +129,19 @@ if __name__ == "__main__":
         db.session.add_all(projects)
         db.session.commit()
 
+        print("Seeding Project Change Log...")
+        prj_change_logs = create_project_change_log(projects)
+        db.session.add_all(prj_change_logs)
+        db.session.commit()
+
         print("Seeding Assignments")
         assignments = create_assignments()
         db.session.add_all(assignments)
+        db.session.commit()
+
+        print("Seeding Assignment Change Log...")
+        asgn_change_logs = create_assignment_change_log(assignments)
+        db.session.add_all(asgn_change_logs)
         db.session.commit()
 
         print("Done Seeding!")

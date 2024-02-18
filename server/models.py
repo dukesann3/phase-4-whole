@@ -45,6 +45,7 @@ class Project(db.Model, SerializerMixin):
     assignments = db.relationship("Assignment", back_populates="project", cascade="all, delete-orphan")
     employees = association_proxy("assignments", "employee", 
                                   creator=lambda employee_obj: Assignment(employee=employee_obj))
+    project_change_log = db.relationship("ProjectChangeLog", back_populates="project")
     
     serialize_rules = ("-assignments.project", "-assignments.employee")
 
@@ -102,27 +103,27 @@ class AssignmentChangeLog(db.Model, SerializerMixin):
 
     assignment = db.relationship("Assignment", back_populates="assignment_change_log")
     serialize_rules = ("-assignment.assignment_change_log",)
-
-    @validates("updated_at")
-    def validates_updated_at(self, key, value):
-        print(value)
-        return value
     
     def __repr__(self):
         return f'<Asgn Change Log ID: {self.id} | updated at: {self.updated_at}>'
+    
+class ProjectChangeLog(db.Model, SerializerMixin):
+    __tablename__ = 'project_change_logs'
+
+    id = db.Column(db.Integer, primary_key=True)
+    project_id = db.Column(db.Integer, db.ForeignKey('projects.id'))
+    detail = db.Column(db.String)
+
+    updated_at = db.Column(db.DateTime, default=datetime.now(), onupdate=datetime.now())
+
+    project = db.relationship("Project", back_populates="project_change_log")
+    serialize_rules = ("-project.project_change_log",)
+
+    def __repr__(self):
+        return f'<Projecy Change Log ID: {self.id} | updated at: {self.updated_at}>'
 
 
     
-
-
-
-
-
-
-
-
-
-
 # class EmployeeBoss(db.Model, SerializerMixin):
 #     __tablename__ = 'employees_bosses'
 
