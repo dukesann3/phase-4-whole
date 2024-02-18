@@ -88,6 +88,25 @@ class TestApp:
         with app.app_context():
             pass
 
+    def test_deletes_project(self):
+        '''Deletes project thru HTTP call'''
+        with app.app_context():
+
+            project_1 = Project(sales_order=453567, name="Hanwa Project", start_date=date(2020,12,20), expected_end_date=date(2021,3,4),
+                                customer_name="Hanwa Ocean", sale_price=500000.00, comment="This is a customer from China")
+            
+            db.session.add(project_1)
+            db.session.commit()
+
+            id = project_1.id
+            
+            response = app.test_client().delete(
+                f'/projects/{id}'
+            )
+
+            assert response.status_code == 200
+        
+
 
 
 

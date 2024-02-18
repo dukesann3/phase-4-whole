@@ -123,6 +123,7 @@ class ProjectID(Resource):
 
     def delete(self, id):
         try:
+            print("IN?")
             project_to_delete = Project.query.filter_by(id=id).first()
 
             new_prj_log = ProjectChangeLog(
@@ -137,8 +138,9 @@ class ProjectID(Resource):
             db.session.commit()
 
             return make_response({}, 200)
-        except:
-            return make_response({"message": "Error, could not delete project"})
+        except Exception as error:
+            print(error)
+            return make_response({"message": "Error, could not delete project"}, 400)
         
 
 class AssignmentInProject(Resource):
