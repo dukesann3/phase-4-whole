@@ -173,6 +173,14 @@ class Assignments(Resource):
             db.session.add(new_assignment)
             db.session.commit()
 
+            new_asgn_log = AssignmentChangeLog(
+                assignment_id=new_assignment.id,
+                detail="Initial Assignment Creation"
+            )
+
+            db.session.add(new_asgn_log)
+            db.session.commit()
+
             return make_response(new_assignment.to_dict(), 200)
         except Exception as error:
             print(error)
@@ -215,6 +223,14 @@ class AssignmentID(Resource):
             assignment_to_delete = Assignment.query.filter_by(id=id).first()
 
             db.session.delete(assignment_to_delete)
+            db.session.commit()
+
+            new_asgn_log = AssignmentChangeLog(
+                assignment_id=id,
+                detail="Deleted Assignment"
+            )
+
+            db.session.add(new_asgn_log)
             db.session.commit()
 
             return make_response({}, 200)
