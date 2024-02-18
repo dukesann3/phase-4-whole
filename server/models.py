@@ -47,7 +47,7 @@ class Project(db.Model, SerializerMixin):
                                   creator=lambda employee_obj: Assignment(employee=employee_obj))
     project_change_log = db.relationship("ProjectChangeLog", back_populates="project")
     
-    serialize_rules = ("-assignments.project", "-assignments.employee")
+    serialize_rules = ("-assignments.project", "-assignments.employee", "-project_change_log.project")
 
     def __repr__(self):
         return f'<Project {self.name} | SO: {self.sales_order}>'
@@ -68,7 +68,7 @@ class Assignment(db.Model, SerializerMixin):
     project = db.relationship("Project", back_populates="assignments")
     assignment_change_log = db.relationship("AssignmentChangeLog", back_populates="assignment")
 
-    serialize_rules = ("-employee.assignments", "-project.assignments")
+    serialize_rules = ("-employee.assignments", "-project.assignments", "-assignment_change_log.assignment")
 
     @validates("start_date")
     def validate_start_date(self, key, value):

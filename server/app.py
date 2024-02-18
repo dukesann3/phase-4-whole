@@ -52,7 +52,7 @@ class EmployeeID(Resource):
 class Projects(Resource):
 
     def get(self):
-        all_projects = [project.to_dict(rules=('-assignments',)) for project in Project.query.all()]
+        all_projects = [project.to_dict(rules=('-assignments','-project_change_log')) for project in Project.query.all()]
         return make_response(all_projects, 200)
     
     def post(self):
@@ -73,6 +73,14 @@ class Projects(Resource):
             db.session.add(new_project)
             db.session.commit()
 
+            new_prj_log = ProjectChangeLog(
+                project_id=new_project.id,
+                detail="Initial Project Creation"
+            )
+
+            db.session.add(new_prj_log)
+            db.session.commit()
+
             return make_response(new_project.to_dict(), 201)
         except:
             return make_response({"message": "Error, could not create new project"}, 401)
@@ -89,23 +97,24 @@ class ProjectID(Resource):
         
     def patch(self, id):
         response = request.get_json()
+        new_response = {}
+        for resp in response:
+            if not resp == "assignments" and not resp == "project_change_log":
+                new_response[resp] = response[resp]
 
         try:
             project = Project.query.filter_by(id=id).first()
-            for attr in response:
-                value = response[attr]
+            for attr in new_response:
+                value = new_response[attr]
                 if attr == "start_date" or attr == "expected_end_date":
                     date_format = "%Y-%m-%d"
                     value = datetime.strptime(value, date_format).date()
-                elif attr == "assignments":
+                elif attr == "assignments" and attr == "project_change_log":
                     continue
-                
-                print(attr)
                 setattr(project, attr, value)
 
             db.session.add(project)
             db.session.commit()
-
             return make_response(project.to_dict(), 200)
         except Exception as error:
             print(error)
@@ -126,7 +135,7 @@ class AssignmentInProject(Resource):
 class Assignments(Resource):
 
     def get(self):
-        all_assignments = [assignment.to_dict(rules=('-employee','-project')) for assignment in Assignment.query.all()]
+        all_assignments = [assignment.to_dict(rules=('-employee','-project', '-assignment_change_log')) for assignment in Assignment.query.all()]
         return make_response(all_assignments, 200)
     
     def post(self):
