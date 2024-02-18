@@ -2,6 +2,7 @@ from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy_serializer import SerializerMixin
 from sqlalchemy.orm import validates
 from sqlalchemy.ext.associationproxy import association_proxy
+from datetime import datetime
 
 db = SQLAlchemy()
 
@@ -64,6 +65,7 @@ class Assignment(db.Model, SerializerMixin):
 
     employee = db.relationship("Employee", back_populates="assignments")
     project = db.relationship("Project", back_populates="assignments")
+    assignment_change_log = db.relationship("AssignmentChangeLog", back_populates="assignment")
 
     serialize_rules = ("-employee.assignments", "-project.assignments")
 
@@ -83,11 +85,33 @@ class Assignment(db.Model, SerializerMixin):
         if value > project_end_date:
             raise ValueError("Assignment's expected end date must be less than the project's expected end date")
         return value
-        
-
-
+    
     def __repr__(self):
         return f'<Assignment {self.name} | Start Date: {self.start_date} | Expected End Date: {self.expected_end_date}>'
+    
+
+class AssignmentChangeLog(db.Model, SerializerMixin):
+    __tablename__ = 'assignment_change_logs'
+
+    id = db.Column(db.Integer, primary_key=True)
+    assignment_id = db.Column(db.Integer, db.ForeignKey('assignments.id'))
+    detail = db.Column(db.String)
+
+    #try datetime. If I like it, keep it and change all dates to datetime please!
+    updated_at = db.Column(db.DateTime, default=datetime.now(), onupdate=datetime.now())
+
+    assignment = db.relationship("Assignment", back_populates="assignment_change_log")
+    serialize_rules = ("-assignment.assignment_change_log",)
+
+    @validates("updated_at")
+    def validates_updated_at(self, key, value):
+        print(value)
+        return value
+    
+    def __repr__(self):
+        return f'<Asgn Change Log ID: {self.id} | updated at: {self.updated_at}>'
+
+
     
 
 
