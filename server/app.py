@@ -3,7 +3,7 @@
 from flask import Flask, jsonify, request, make_response
 from flask_migrate import Migrate
 from flask_restful import Api, Resource
-from models import db, Employee, Project, Assignment
+from models import db, Employee, Project, Assignment, ProjectChangeLog, AssignmentChangeLog
 from datetime import datetime, date
 
 app = Flask(__name__)
@@ -193,8 +193,57 @@ class AssignmentID(Resource):
             return make_response({}, 200)
         except:
             return make_response({"message": "Error, could not delete assignment"})
+        
+class ProjectChangeLogs(Resource):
 
+    def get(self):
+        print(ProjectChangeLog.query.first())
+        #print(ProjectChangeLog.query.first().to_dict(rules=("-project",)))
 
+        all_log = [log.to_dict(rules=("-project",)) for log in ProjectChangeLog.query.all()]
+        return make_response(all_log, 200)
+
+    def post(self):
+        response = request.get_json()
+
+        try:
+            new_log = ProjectChangeLog(
+                project_id=response["project_id"],
+                detail=response["detail"]
+            )
+
+            db.session.add(new_log)
+            db.session.commit()
+
+            return make_response(new_log.to_dict(rules=("-project",)), 200)
+        except Exception as error:
+            print(error)
+            return make_response({"message": "Error, could not create new log"}, 400)
+        
+
+class AssignmentChangeLogs(Resource):
+
+    def get(self):
+        all_log = [log.to_dict(rules=("-assignment",)) for log in AssignmentChangeLog.query.all()]
+        return make_response(all_log, 200)
+
+    def post(self):
+        response = request.get_json()
+
+        try:
+            new_log = AssignmentChangeLog(
+                assignment_id=response["assignment_id"],
+                detail=response["detail"]
+            )
+
+            db.session.add(new_log)
+            db.session.commit()
+
+            return make_response(new_log.to_dict(rules=("-assignment",)), 200)
+        except Exception as error:
+            print(error)
+            return make_response({"message": "Error, could not create new log"})
+        
 
 
 api.add_resource(Employees, '/employees')
@@ -204,6 +253,8 @@ api.add_resource(ProjectID, '/projects/<int:id>')
 api.add_resource(AssignmentInProject, '/projects/assignments/<int:prj_id>')
 api.add_resource(Assignments, '/assignments')
 api.add_resource(AssignmentID, '/assignments/<int:id>')
+api.add_resource(ProjectChangeLogs, '/project_log')
+api.add_resource(AssignmentChangeLogs, '/assignment_log')
 
 
 if __name__ == "__main__":
