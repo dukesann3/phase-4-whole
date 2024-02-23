@@ -19,7 +19,7 @@ class Employee(db.Model, SerializerMixin):
     projects = association_proxy("assignments", "project", 
                                  creator=lambda project_obj: Assignment(project=project_obj))
     
-    serialize_rules = ("-assignments.employee","-assignments.project")
+    serialize_rules = ("-assignments.employee",)
 
     #!!!!!! EMAIL AND PASSWORD FOR LOGIN FOR FUTURE !!!!!
 
@@ -41,6 +41,7 @@ class Project(db.Model, SerializerMixin):
     customer_name=db.Column(db.String)
     sale_price=db.Column(db.Float)
     comment=db.Column(db.String)
+    isComplete = db.Column(db.Boolean, nullable=False, default=False)
 
     assignments = db.relationship("Assignment", back_populates="project", cascade="all, delete-orphan")
     employees = association_proxy("assignments", "employee", 
@@ -63,6 +64,7 @@ class Assignment(db.Model, SerializerMixin):
     comments = db.Column(db.String)
     start_date = db.Column(db.Date, nullable=False)
     expected_end_date = db.Column(db.Date, nullable=False)
+    isComplete = db.Column(db.Boolean, nullable=False, default=False)
 
     employee = db.relationship("Employee", back_populates="assignments")
     project = db.relationship("Project", back_populates="assignments")

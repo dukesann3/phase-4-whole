@@ -45,7 +45,8 @@ def create_projects():
             expected_end_date=fake.date_between_dates(date_start=date(2025,1,1), date_end=date(2029,1,1)),
             customer_name=fake.name(),
             sale_price=round(random.uniform(10000.00,1000000.00),2),
-            comment=fake.paragraph(nb_sentences=1)
+            comment=fake.paragraph(nb_sentences=1),
+            isComplete=False
         )
         all_projects.append(project)
 
@@ -75,7 +76,8 @@ def create_assignments():
             name=fake.text(max_nb_chars=20),
             comments=fake.paragraph(nb_sentences=1),
             start_date=assignment_start_date,
-            expected_end_date=assignment_end_date
+            expected_end_date=assignment_end_date,
+            isComplete=False
         )
 
         all_assignments.append(assignment)
