@@ -5,6 +5,7 @@ from flask_migrate import Migrate
 from flask_restful import Api, Resource
 from models import db, Employee, Project, Assignment, ProjectChangeLog, AssignmentChangeLog
 from datetime import datetime, date
+import ipdb
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///plants.db'
@@ -19,7 +20,7 @@ api = Api(app)
 class Employees(Resource):
     
     def get(self):
-        all_employees = [employee.to_dict(rules=('-assignments',)) for employee in Employee.query.all()]
+        all_employees = [employee.to_dict(rules=('-assignments','-projects')) for employee in Employee.query.all()]
         return make_response(all_employees, 200)
 
     def post(self):
@@ -42,11 +43,12 @@ class Employees(Resource):
 class EmployeeID(Resource):
 
     def get(self, id):
-        employee = Employee.query.filter_by(id=id).first().to_dict()
-        if employee:
-            return make_response(employee, 200)
-        else:
-            return make_response({"message": f"Error, could not find employee with ID: {id}"})
+        try:
+            employee = Employee.query.filter(Employee.id==id).first()
+            return make_response(employee.to_dict(), 200)
+        except:
+            return make_response({"error": f"Could not find employee with id: {id}"}, 404)
+
         
 
 class Projects(Resource):
@@ -89,9 +91,9 @@ class Projects(Resource):
 class ProjectID(Resource):
 
     def get(self, id):
-        project = Project.query.filter_by(id=id).first().to_dict()
+        project = Project.query.filter_by(id=id).first()
         if project:
-            return make_response(project, 200)
+            return make_response(project.to_dict(rules=("employees","-employees.assignments", "-employees.projects")), 200)
         else:
             return make_response({"message": f"Error, could not find project with ID: {id}"})
         
@@ -267,7 +269,7 @@ class ProjectChangeLogs(Resource):
 class AssignmentChangeLogs(Resource):
 
     def get(self):
-        all_log = [log.to_dict(rules=("-assignment",)) for log in AssignmentChangeLog.query.all()]
+        all_log = [log.to_dict() for log in AssignmentChangeLog.query.all()]
         return make_response(all_log, 200)
 
     def post(self):

@@ -3,6 +3,7 @@ from sqlalchemy_serializer import SerializerMixin
 from sqlalchemy.orm import validates
 from sqlalchemy.ext.associationproxy import association_proxy
 from datetime import datetime
+import ipdb
 
 db = SQLAlchemy()
 
@@ -19,7 +20,8 @@ class Employee(db.Model, SerializerMixin):
     projects = association_proxy("assignments", "project", 
                                  creator=lambda project_obj: Assignment(project=project_obj))
     
-    serialize_rules = ("-assignments.employee",)
+    serialize_rules = ("-assignments.employee","-assignments.assignment_change_log", "-assignments.project", 
+                       "projects", "-projects.assignments", "-projects.project_change_log")
 
     #!!!!!! EMAIL AND PASSWORD FOR LOGIN FOR FUTURE !!!!!
 
@@ -48,7 +50,7 @@ class Project(db.Model, SerializerMixin):
                                   creator=lambda employee_obj: Assignment(employee=employee_obj))
     project_change_log = db.relationship("ProjectChangeLog", back_populates="project")
     
-    serialize_rules = ("-assignments.project", "-assignments.employee", "-project_change_log.project")
+    serialize_rules = ("-assignments.project", "-project_change_log.project", "-assignments.assignment_change_log", "-assignments.employee")
 
     def __repr__(self):
         return f'<Project {self.name} | SO: {self.sales_order}>'
