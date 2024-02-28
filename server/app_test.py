@@ -3,6 +3,7 @@ from app import app, db
 from faker import Faker
 from datetime import date, timedelta
 import ipdb
+from datetime import datetime
 
 fake = Faker()
 
@@ -197,17 +198,47 @@ class TestApp:
             assert response.json.get('error') == "Could not find employee with id: 0"
             assert response.status_code == 404
 
+    def test_get_specific_project(self):
+        '''Returns specific project with project id'''
+        with app.app_context():
+            employee1 = Employee(first_name="Travis", last_name="Browne", department="Engineering", role="Project Engineer")
+
+            project1 = Project(sales_order=453567, name="Hanwa Project", start_date=date(2020,12,20), expected_end_date=date(2024,3,4),
+                              customer_name="Hanwa Ocean", sale_price=500000.00, comment="This is a customer from China")
+        
+            db.session.add_all([employee1, project1])
+            db.session.commit()
+
+            assignment1 = Assignment(employee_id=employee1.id, project_id=project1.id, name="finish redline", 
+                                     comments="please finish this", start_date=date(2023,1,1), expected_end_date=date(2023,2,2), isComplete=False) 
+        
+            db.session.add(assignment1)
+            db.session.commit()
+
+            response = app.test_client().get(f'/projects/{project1.id}')
+            assert response.status_code == 200
+            assert response.content_type == 'application/json'
+            response = response.json
+
+            assert project1.sales_order == response["sales_order"]
+            assert project1.name == response["name"]
+            assert str(project1.start_date) == response["start_date"]
+            assert str(project1.expected_end_date) == response["expected_end_date"]
+            assert project1.customer_name == response["customer_name"]
+            assert project1.sale_price == response["sale_price"]
+            assert project1.comment == response["comment"]
+            assert project1.isComplete == response["isComplete"]
+
+            assert project1.assignments[0].to_dict(rules=("-assignment_change_log", "-employee", "-project")) == response["assignments"][0]
+            assert project1.employees[0].to_dict(rules=("-assignments","-projects")) == response["employees"][0]
 
 
-
-
-
-
-
-
-
-
-
+    def test_get_specific_project_fail(self):
+        '''Return 400 status when failed'''
+        with app.app_context():
+            response = app.test_client().get('/projects/0')
+            assert response.json.get('error') == "Could not find project with id: 0"
+            assert response.status_code == 404
 
 
     def test_deletes_project(self):
@@ -241,6 +272,114 @@ class TestApp:
             assert response.status_code == 200
             assert not deletedProject
             assert not deletedAssignment
+
+
+    def test_deletes_assignment(self):
+        '''Deletes assignment thru HTTP call'''
+        with app.app_context():
+            
+            project_1 = Project(sales_order=453567, name="Hanwa Project", start_date=date(2020,12,20), expected_end_date=date(2021,3,4),
+                                customer_name="Hanwa Ocean", sale_price=500000.00, comment="This is a customer from China")
+            
+            employee_1 = Employee(first_name="Travis", last_name="Browne", department="Engineering", role="Project Engineer")
+
+            db.session.add_all([project_1, employee_1])
+            db.session.commit()
+
+            assignment_1 = Assignment(employee_id=employee_1.id, project_id=project_1.id, name="doodle on the paper", 
+                                comments="finish when you want to", start_date=date(2020,12,21), expected_end_date=date(2020,5,2), isComplete=False) 
+
+            db.session.add(assignment_1)
+            db.session.commit()
+
+            prj_id = project_1.id
+            asgn_id = assignment_1.id
+
+            response = app.test_client().delete(
+                f'/assignments/{asgn_id}'
+            )
+
+            deletedAssignment = Assignment.query.filter(Assignment.id == asgn_id).one_or_none()
+            deletedProject = Project.query.filter(Project.id == prj_id).one_or_none()
+
+            assert response.status_code == 200
+            assert not deletedAssignment
+            assert deletedProject
+
+    
+    def test_post_employees(self):
+        '''POSTS employees through HTTP call'''
+        with app.app_context():
+            first_name = "first_test"
+            last_name = "last_test"
+            department = "department_test"
+            role = "role_test"
+
+            response = app.test_client().post(
+                '/employees',
+                json={
+                    'first_name': first_name,
+                    'last_name': last_name,
+                    'department': department,
+                    'role': role
+                }
+            ).json
+
+            assert response['id']
+            assert response['first_name'] == first_name
+            assert response['last_name'] == last_name
+            assert response['department'] == department
+            assert response['role'] == role
+
+            employee = Employee.query.filter_by(id==response['id']).one_or_none()
+            assert employee
+
+
+    def test_post_projects(self):
+        '''POSTS project through HTTP call'''
+        with app.app_context():
+            sales_order = 333333
+            name = "name_test"
+            start_date = "2022-2-2"
+            expected_end_date = "2023-3-3"
+            customer_name = "customer_name_test"
+            sale_price = 1000
+            comment = "comment_test"
+            isComplete = False
+
+            response = app.test_client().post(
+                '/projects',
+                json={
+                    'sales_order': sales_order,
+                    'name': name,
+                    'start_date': start_date,
+                    'expected_end_date': expected_end_date,
+                    'customer_name': customer_name,
+                    'sale_price': sale_price,
+                    'comment': comment,
+                    'isComplete': isComplete
+                }
+            ).json
+
+            assert response['id']
+            assert response['sales_order'] == sales_order
+            assert response['name'] == name
+            assert datetime.strptime(response['start_date'], "%Y-%m-%d") == datetime.strptime(start_date, "%Y-%m-%d")
+            assert datetime.strptime(response['expected_end_date'], "%Y-%m-%d") == datetime.strptime(expected_end_date, "%Y-%m-%d")
+            assert response['customer_name'] == customer_name
+            assert response['sale_price'] == sale_price
+            assert response['comment'] == comment
+            assert response['isComplete'] == isComplete
+
+            project = Project.query.filter_by(id=response['id']).one_or_none()
+            assert project
+
+
+
+
+
+
+
 
             
         

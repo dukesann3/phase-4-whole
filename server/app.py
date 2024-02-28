@@ -95,7 +95,7 @@ class ProjectID(Resource):
         if project:
             return make_response(project.to_dict(rules=("employees","-employees.assignments", "-employees.projects")), 200)
         else:
-            return make_response({"message": f"Error, could not find project with ID: {id}"})
+            return make_response({"error": f"Could not find project with id: {id}"}, 404)
         
     def patch(self, id):
         response = request.get_json()
