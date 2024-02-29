@@ -38,7 +38,7 @@ class Employees(Resource):
 
             return make_response(new_employee.to_dict(), 201)
         except:
-            return make_response({"message": "Error, could not create new employee"}, 403)
+            return make_response({"message": "Error, could not create new employee"}, 404)
         
 class EmployeeID(Resource):
 
@@ -85,7 +85,7 @@ class Projects(Resource):
 
             return make_response(new_project.to_dict(), 201)
         except:
-            return make_response({"message": "Error, could not create new project"}, 401)
+            return make_response({"message": "Error, could not create new project"}, 404)
     
 
 class ProjectID(Resource):
@@ -120,12 +120,11 @@ class ProjectID(Resource):
             return make_response(project.to_dict(), 200)
         except Exception as error:
             print(error)
-            return make_response({"message": "Error, could not update project"}, 400)
+            return make_response({"message": "Error, could not update project"}, 404)
 
 
     def delete(self, id):
         try:
-            print("IN?")
             project_to_delete = Project.query.filter_by(id=id).first()
 
             new_prj_log = ProjectChangeLog(
@@ -142,7 +141,7 @@ class ProjectID(Resource):
             return make_response({}, 200)
         except Exception as error:
             print(error)
-            return make_response({"message": "Error, could not delete project"}, 400)
+            return make_response({"message": "Error, could not delete project"}, 404)
         
 
 class AssignmentInProject(Resource):
@@ -186,7 +185,7 @@ class Assignments(Resource):
             return make_response(new_assignment.to_dict(), 200)
         except Exception as error:
             print(error)
-            return make_response({"message": "Error, could not create assignment"}, 400)
+            return make_response({"message": "Error, could not create new assignment"}, 404)
     
 
 class AssignmentID(Resource):
@@ -218,7 +217,7 @@ class AssignmentID(Resource):
             return make_response(assignment.to_dict(), 200)
         except Exception as error:
             print(error)
-            return make_response({"message": "Error, could not patch assignment"}, 400)
+            return make_response({"message": "Error, could not update assignments"}, 404)
 
     def delete(self, id):
         try:
@@ -237,7 +236,7 @@ class AssignmentID(Resource):
 
             return make_response({}, 200)
         except:
-            return make_response({"message": "Error, could not delete assignment"})
+            return make_response({"message": "Error, could not delete assignment"}, 404)
         
 class ProjectChangeLogs(Resource):
 
