@@ -3,7 +3,7 @@
 from flask import Flask, jsonify, request, make_response
 from flask_migrate import Migrate
 from flask_restful import Api, Resource
-from models import db, Employee, Project, Assignment, ProjectChangeLog, AssignmentChangeLog
+from server.models import db, Employee, Project, Assignment, ProjectChangeLog, AssignmentChangeLog
 from datetime import datetime, date
 import ipdb
 
@@ -72,6 +72,12 @@ class Projects(Resource):
                 comment=response["comment"]
             )
 
+            start_date = datetime.strptime(response["start_date"], date_format).date()
+            end_date = datetime.strptime(response["expected_end_date"], date_format).date()
+
+            if start_date > end_date:
+                raise ValueError
+ 
             db.session.add(new_project)
             db.session.commit()
 
@@ -84,6 +90,8 @@ class Projects(Resource):
             db.session.commit()
 
             return make_response(new_project.to_dict(), 201)
+        except ValueError:
+            return make_response({"message": "Error, start date cannot be greater than end date"}, 404)
         except:
             return make_response({"message": "Error, could not create new project"}, 404)
     
@@ -171,6 +179,12 @@ class Assignments(Resource):
                 expected_end_date=datetime.strptime(response["expected_end_date"], date_format).date()
             )
 
+            start_date = datetime.strptime(response["start_date"], date_format).date()
+            end_date = datetime.strptime(response["expected_end_date"], date_format).date()
+
+            if start_date > end_date:
+                raise ValueError
+
             db.session.add(new_assignment)
             db.session.commit()
 
@@ -183,6 +197,8 @@ class Assignments(Resource):
             db.session.commit()
 
             return make_response(new_assignment.to_dict(), 200)
+        except ValueError:
+            return make_response({"message": "Error, start date cannot be greater than end date"}, 404)
         except Exception as error:
             print(error)
             return make_response({"message": "Error, could not create new assignment"}, 404)

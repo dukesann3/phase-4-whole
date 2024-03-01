@@ -91,6 +91,7 @@ class Assignment(db.Model, SerializerMixin):
             raise ValueError("Assignment's expected end date must be less than the project's expected end date")
         return value
     
+    
     def __repr__(self):
         return f'<Assignment {self.name} | Start Date: {self.start_date} | Expected End Date: {self.expected_end_date}>'
     

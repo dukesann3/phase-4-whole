@@ -1,5 +1,5 @@
 from app import app
-from models import Employee, db, Project, Assignment, AssignmentChangeLog, ProjectChangeLog
+from server.models import Employee, db, Project, Assignment, AssignmentChangeLog, ProjectChangeLog
 from faker import Faker
 from datetime import date, timedelta
 import random

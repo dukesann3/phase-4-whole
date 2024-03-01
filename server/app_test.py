@@ -1,4 +1,4 @@
-from models import Employee, Project, Assignment
+from server.models import Employee, Project, Assignment
 from app import app, db
 from faker import Faker
 from datetime import date, timedelta
@@ -441,6 +441,26 @@ class TestApp:
             assert response.status_code == 404
             assert response.json['message'] == "Error, could not create new project"
 
+    def test_post_projects_start_end_date_validation_error(self):
+        '''Start date cannot be greater than end date'''
+
+        with app.app_context():
+
+            response = app.test_client().post(
+                '/projects',
+                json = {
+                    "sales_order": 40000,
+                    "name": "tester",
+                    "customer_name": "Bob",
+                    "sale_price": 100,
+                    "comment": "tester",
+                    "start_date": "2020-1-1",
+                    "expected_end_date": "2001-1-1"
+                }
+            )
+
+            assert response.status_code == 404
+
 
     def test_post_assignments(self):
         '''POST assignment through HTTP call'''
@@ -517,6 +537,33 @@ class TestApp:
 
             assert response.status_code == 404
             assert response.json['message'] == "Error, could not create new assignment"
+
+    def test_post_assignments_start_end_date_validation_error(self):
+        '''Start date cannot be greater than end date'''
+
+        with app.app_context():
+
+            project1 = Project(sales_order=453567, name="Hanwa Project", start_date=date(2020,12,20), expected_end_date=date(2021,3,4),
+                    customer_name="Hanwa Ocean", sale_price=500000.00, comment="This is a customer from China", isComplete=False)
+            employee1 = Employee(first_name="Travis", last_name="Browne", department="Engineering", role="Project Engineer")
+
+            db.session.add_all([project1, employee1])
+            db.session.commit()
+
+            response = app.test_client().post(
+                '/assignments',
+                json = {
+                    "employee_id": employee1.id,
+                    "project_id": project1.id,
+                    "name": "tester",
+                    "comments": "tester",
+                    "start_date": date(2021,2,1),
+                    "expected_end_date": date(2021,1,1)
+                }
+            )
+
+            assert response.status_code == 404
+
 
     def test_patch_project(self):
         '''PATCHing project'''
@@ -601,6 +648,8 @@ class TestApp:
 
             assert response.status_code == 404
             assert response.json["message"] == "Error, could not update assignments"
+
+    
 
 
 
