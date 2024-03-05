@@ -1,8 +1,8 @@
-from server.models import Employee, Project, Assignment
+import ipdb
+from models import Employee, Project, Assignment
 from app import app, db
 from faker import Faker
 from datetime import date, timedelta
-import ipdb
 from datetime import datetime
 
 fake = Faker()

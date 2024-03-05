@@ -3,7 +3,7 @@
 from flask import Flask, jsonify, request, make_response
 from flask_migrate import Migrate
 from flask_restful import Api, Resource
-from server.models import db, Employee, Project, Assignment, ProjectChangeLog, AssignmentChangeLog
+from models import db, Employee, Project, Assignment, ProjectChangeLog, AssignmentChangeLog
 from datetime import datetime, date
 import ipdb
 
@@ -119,12 +119,19 @@ class ProjectID(Resource):
                 if attr == "start_date" or attr == "expected_end_date":
                     date_format = "%Y-%m-%d"
                     value = datetime.strptime(value, date_format).date()
-                elif attr == "assignments" and attr == "project_change_log":
+                elif attr == "assignments" and attr == "project_change_log" and attr == "detail":
                     continue
                 setattr(project, attr, value)
 
             db.session.add(project)
             db.session.commit()
+
+            project_log = ProjectChangeLog.query.filter(ProjectChangeLog.project_id == project.id).first()
+            setattr(project_log, "detail", response["detail"])
+
+            db.session.add(project_log)
+            db.session.commit()
+
             return make_response(project.to_dict(), 200)
         except Exception as error:
             print(error)
@@ -224,10 +231,18 @@ class AssignmentID(Resource):
                 value = response[attr]
                 if attr == "start_date" or attr == "expected_end_date":
                     value = datetime.strptime(response[attr], date_format).date()
+                elif attr == "detail":
+                    continue
 
                 setattr(assignment, attr, value)
             
             db.session.add(assignment)
+            db.session.commit()
+
+            assignment_log = AssignmentChangeLog.query.filter(AssignmentChangeLog.assignment_id == assignment.id).first()
+            setattr(assignment_log, "detail", response["detail"])
+
+            db.session.add(assignment_log)
             db.session.commit()
 
             return make_response(assignment.to_dict(), 200)
