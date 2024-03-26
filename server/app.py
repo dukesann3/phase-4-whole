@@ -119,15 +119,17 @@ class ProjectID(Resource):
                 if attr == "start_date" or attr == "expected_end_date":
                     date_format = "%Y-%m-%d"
                     value = datetime.strptime(value, date_format).date()
-                elif attr == "assignments" and attr == "project_change_log" and attr == "detail":
+                elif attr == "assignments" or attr == "project_change_log" or attr == "detail":
                     continue
                 setattr(project, attr, value)
 
             db.session.add(project)
             db.session.commit()
 
-            project_log = ProjectChangeLog.query.filter(ProjectChangeLog.project_id == project.id).first()
-            setattr(project_log, "detail", response["detail"])
+            project_log = ProjectChangeLog(
+                project_id=project.id,
+                detail=response["detail"]
+            )
 
             db.session.add(project_log)
             db.session.commit()
@@ -239,9 +241,11 @@ class AssignmentID(Resource):
             db.session.add(assignment)
             db.session.commit()
 
-            assignment_log = AssignmentChangeLog.query.filter(AssignmentChangeLog.assignment_id == assignment.id).first()
-            setattr(assignment_log, "detail", response["detail"])
-
+            assignment_log = AssignmentChangeLog(
+                assignment_id=assignment.id,
+                detail=response["detail"]
+            )
+            
             db.session.add(assignment_log)
             db.session.commit()
 
