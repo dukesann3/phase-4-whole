@@ -52,6 +52,26 @@ class Project(db.Model, SerializerMixin):
     
     serialize_rules = ("-assignments.project", "-project_change_log.project", "-assignments.assignment_change_log", "-assignments.employee")
 
+    @validates("start_date")
+    def validate_start_date(self, key, value):
+        assignments = Assignment.query.filter(Assignment.project_id==self.id).all()
+        
+        for asgn in assignments:
+            if asgn.start_date < value:
+                print("ERRORS?")
+                raise ValueError("Start date for assignment must be after project start date")
+            
+        return value
+        
+    @validates("expected_end_date")
+    def validates_expected_end_date(self, key, value):
+        assignments = Assignment.query.filter(Assignment.project_id==self.id).all()
+
+        for asgn in assignments:
+            if asgn.expected_end_date > value:
+                raise ValueError("Start date for assignment must be after project start date")
+        return value
+
     def __repr__(self):
         return f'<Project {self.name} | SO: {self.sales_order}>'
     
